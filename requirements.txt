@@ -1,0 +1,7 @@
+streamlit
+requests
+paddlepaddle
+paddleocr
+pandas
+python-dotenv
+opencv-python-headless
