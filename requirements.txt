@@ -5,3 +5,6 @@ paddleocr
 pandas
 python-dotenv
 opencv-python-headless
+PyQt6
+pyqtdarktheme
+pymupdf
