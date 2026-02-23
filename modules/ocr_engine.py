@@ -1,44 +1,51 @@
-from paddleocr import PaddleOCR
 import os
-import logging
-
-# Suppress PaddleOCR debug logging
-logging.getLogger("ppocr").setLevel(logging.ERROR)
+import easyocr
+import fitz  # PyMuPDF
+import numpy as np
+from PIL import Image
 
 class OCREngine:
     def __init__(self):
-        # Instantiate PaddleOCR with requested parameters:
-        # use_angle_cls=True (detect rotation/angle)
-        # lang='pt' (Portuguese model)
-        print("Initializing PaddleOCR (this may take a moment)...")
-        self.ocr = PaddleOCR(use_angle_cls=True, lang='pt', show_log=False)
+        print("--- [OCR Init] Inicializando EasyOCR (Modo CPU)...")
+        # gpu=False garante que rode no processador sem dar erro
+        self.reader = easyocr.Reader(['pt'], gpu=False)
 
     def extract_text(self, file_path):
-        """
-        Extracts text from a given PDF or Image file using PaddleOCR.
-        Returns a single concatenated string.
-        """
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"File not found: {file_path}")
+        """Identifica a extensão e processa o arquivo."""
+        print(f"--- [OCR] Processando: {file_path}")
+        try:
+            ext = os.path.splitext(file_path)[1].lower()
+            if ext == '.pdf':
+                return self._process_pdf(file_path)
+            else:
+                return self._process_image(file_path)
+        except Exception as e:
+            print(f"!!! Erro no OCR: {e}")
+            return None
 
-        print(f"Running OCR on {file_path}...")
+    def _process_image(self, img_path):
+        # detail=0 retorna só os textos; paragraph=True agrupa frases próximas
+        resultados = self.reader.readtext(img_path, detail=0, paragraph=True)
+        return "\n".join(resultados)
+
+    def _process_pdf(self, pdf_path):
+        texto_acumulado = []
+        doc = fitz.open(pdf_path)
         
-        # paddleocr's ocr method handles PDF paths natively in newer versions,
-        # but sometimes requires conversion. Assuming paddleocr supports the file.
-        # It typically returns a list of results.
-        result = self.ocr.ocr(file_path, cls=True)
-        
-        extracted_text = []
-        
-        # PaddleOCR result structure: list of pages -> list of lines -> [box, (text, score)]
-        # Usually result is a list of lists.
-        if result:
-            for page in result:
-                if page:
-                    for line in page:
-                        # line structure: [ [[x1,y1],[x2,y2],[x3,y3],[x4,y4]], ('text', 0.99) ]
-                        text_content = line[1][0]
-                        extracted_text.append(text_content)
-        
-        full_text = "\n".join(extracted_text)
-        return full_text
+        for i, page in enumerate(doc):
+            print(f"--- [OCR] Lendo página {i+1} de {len(doc)}...")
+            # dpi=200 é o ponto ideal entre velocidade e qualidade
+            pix = page.get_pixmap(dpi=200)
+            
+            modo = "RGBA" if pix.alpha else "RGB"
+            img = Image.frombytes(modo, [pix.width, pix.height], pix.samples)
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
+                
+            img_np = np.array(img)
+            
+            resultados = self.reader.readtext(img_np, detail=0, paragraph=True)
+            texto_acumulado.append("\n".join(resultados))
+            
+        doc.close()
+        return "\n".join(texto_acumulado)

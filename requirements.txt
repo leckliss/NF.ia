@@ -1,10 +1,7 @@
-streamlit
-requests
 paddlepaddle
 paddleocr
-pandas
-python-dotenv
-opencv-python-headless
-PyQt6
-pyqtdarktheme
 pymupdf
+streamlit
+pandas
+pillow
+numpy

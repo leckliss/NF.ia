@@ -1,0 +1,48 @@
+Inspecting PaddleOCR...
+
+--- PaddleOCR.ocr Signature ---
+(img, **kwargs)
+
+--- PaddleOCR dir() ---
+['__abstractmethods__', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__firstlineno__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__static_attributes__', '__str__', '__subclasshook__', '__weakref__', '_abc_impl', '_common_args', '_create_paddlex_pipeline', '_get_merged_paddlex_config', '_get_ocr_model_names', '_get_paddlex_config_overrides', '_merged_paddlex_config', '_paddlex_config', '_paddlex_pipeline_name', '_params', 'close', 'export_paddlex_config_to_yaml', 'get_cli_subcommand_executor', 'ocr', 'paddlex_pipeline', 'predict', 'predict_iter']
+
+--- Test Call ---
+Calling ocr(img)...
+Call failed: (Unimplemented) ConvertPirAttribute2RuntimeAttribute not support [pir::ArrayAttribute<pir::DoubleAttribute>]  (at ..\paddle\fluid\framework\new_executor\instruction\onednn\onednn_instruction.cc:118)
+
+Traceback (most recent call last):
+  File "C:\Users\erick.souza\Downloads\financeiro\NF.ia\debug_ocr.py", line 28, in <module>
+    ocr.ocr(img)
+    ~~~~~~~^^^^^
+  File "C:\Users\erick.souza\AppData\Local\Programs\Python\Python313\Lib\warnings.py", line 637, in wrapper
+    return arg(*args, **kwargs)
+  File "C:\Users\erick.souza\AppData\Local\Programs\Python\Python313\Lib\site-packages\paddleocr\_pipelines\ocr.py", line 231, in ocr
+    return self.predict(img, **kwargs)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\erick.souza\AppData\Local\Programs\Python\Python313\Lib\site-packages\paddleocr\_pipelines\ocr.py", line 213, in predict
+    return list(
+        self.predict_iter(
+    ...<11 lines>...
+        )
+    )
+  File "C:\Users\erick.souza\AppData\Local\Programs\Python\Python313\Lib\site-packages\paddlex\inference\pipelines\_parallel.py", line 139, in predict
+    yield from self._pipeline.predict(
+    ...<3 lines>...
+    )
+  File "C:\Users\erick.souza\AppData\Local\Programs\Python\Python313\Lib\site-packages\paddlex\inference\pipelines\ocr\pipeline.py", line 357, in predict
+    det_results = list(
+        self.text_det_model(doc_preprocessor_images, **text_det_params)
+    )
+  File "C:\Users\erick.souza\AppData\Local\Programs\Python\Python313\Lib\site-packages\paddlex\inference\models\base\predictor\base_predictor.py", line 281, in __call__
+    yield from self.apply(input, **kwargs)
+  File "C:\Users\erick.souza\AppData\Local\Programs\Python\Python313\Lib\site-packages\paddlex\inference\models\base\predictor\base_predictor.py", line 338, in apply
+    prediction = self.process(batch_data, **kwargs)
+  File "C:\Users\erick.souza\AppData\Local\Programs\Python\Python313\Lib\site-packages\paddlex\inference\models\text_detection\predictor.py", line 133, in process
+    batch_preds = self.infer(x=x)
+  File "C:\Users\erick.souza\AppData\Local\Programs\Python\Python313\Lib\site-packages\paddlex\inference\models\common\static_infer.py", line 298, in __call__
+    pred = self.infer(x)
+  File "C:\Users\erick.souza\AppData\Local\Programs\Python\Python313\Lib\site-packages\paddlex\inference\models\common\static_infer.py", line 261, in __call__
+    self.predictor.run()
+    ~~~~~~~~~~~~~~~~~~^^
+NotImplementedError: (Unimplemented) ConvertPirAttribute2RuntimeAttribute not support [pir::ArrayAttribute<pir::DoubleAttribute>]  (at ..\paddle\fluid\framework\new_executor\instruction\onednn\onednn_instruction.cc:118)
+

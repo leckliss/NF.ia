@@ -1,6 +1,6 @@
 import sys
 import os
-# Disable PaddleOCR update check
+# Desativar verificação de atualização do PaddleOCR
 os.environ["PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK"] = "True"
 
 import fitz  # PyMuPDF
@@ -19,7 +19,7 @@ from modules.ocr_engine import OCREngine
 from modules.ai_processor import extract_invoice_data
 from modules.database import init_db, save_invoice, get_all_invoices
 
-# Constants
+# Constantes
 STATUS_PENDING = "⚠️ Pendente"
 STATUS_OK = "✅ OK"
 
@@ -32,13 +32,13 @@ class ProcessingWorker(QThread):
         try:
             self.status_update.emit("Iniciando clientes...")
             email_client = SmarterMailClient()
-            # Note: OCREngine initialization might be heavy, ideally cached or passed in.
-            # For this MVP, we init here or rely on the module doing it efficiently.
+            # Nota: A inicialização do OCREngine pode ser pesada, idealmente em cache ou passada.
+            # Para este MVP, iniciamos aqui ou confiamos que o módulo faça isso de forma eficiente.
             
-            # Using a singleton or global for OCR in the module would be better for performance,
-            # ensuring we don't reload the model every click. 
-            # We'll assume the user is okay with the wait or we can instantiate outside.
-            # To be safe and reuse logic:
+            # Usar um singleton ou global para OCR no módulo seria melhor para desempenho,
+            # garantindo que não recarregamos o modelo a cada clique.
+            # Vamos assumir que o usuário aceita a espera ou podemos instanciar fora.
+            # Para ser seguro e reutilizar a lógica:
             ocr = OCREngine() 
 
             self.status_update.emit("Buscando e-mails...")
@@ -80,22 +80,22 @@ class InvoiceWindow(QMainWindow):
         self.setWindowTitle("Invoice Automator Pro")
         self.resize(1200, 800)
         
-        # Data
+        # Dados
         self.df_invoices = None
         
-        # Setup UI
+        # Configurar UI
         self.init_ui()
         self.load_data()
 
     def init_ui(self):
-        # Main Layout
+        # Layout Principal
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
         main_layout = QVBoxLayout(main_widget)
         main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(10)
 
-        # Toolbar / Header Area
+        # Barra de Ferramentas / Área de Cabeçalho
         header_layout = QHBoxLayout()
         
         self.btn_process = QPushButton("🔄 Processar Novos E-mails")
@@ -111,14 +111,14 @@ class InvoiceWindow(QMainWindow):
         header_layout.addWidget(self.btn_refresh)
         header_layout.addStretch()
         
-        # Metrics
+        # Métricas
         self.lbl_metrics = QLabel("Total: 0 | Valor: R$ 0,00")
         self.lbl_metrics.setStyleSheet("font-size: 16px; font-weight: bold; color: #ccc;")
         header_layout.addWidget(self.lbl_metrics)
 
         main_layout.addLayout(header_layout)
 
-        # Progress Bar & Status
+        # Barra de Progresso e Status
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
         main_layout.addWidget(self.progress_bar)
@@ -127,10 +127,10 @@ class InvoiceWindow(QMainWindow):
         self.lbl_status.setStyleSheet("color: #aaa; font-style: italic;")
         main_layout.addWidget(self.lbl_status)
 
-        # Splitter (Table vs Details)
+        # Divisor (Tabela vs Detalhes)
         splitter = QSplitter(Qt.Orientation.Vertical)
         
-        # Table View
+        # Visualização de Tabela
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(["ID", "Data", "Emitente", "Valor (R$)", "Arquivo", "Status"])
@@ -140,11 +140,11 @@ class InvoiceWindow(QMainWindow):
         self.table.itemSelectionChanged.connect(self.on_selection_changed)
         splitter.addWidget(self.table)
 
-        # Detail View Area
+        # Área de Visualização de Detalhes
         detail_widget = QWidget()
         detail_layout = QHBoxLayout(detail_widget)
         
-        # Left: Doc Viewer
+        # Esquerda: Visualizador de Doc
         self.lbl_doc_viewer = QLabel("Selecione uma nota para visualizar")
         self.lbl_doc_viewer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_doc_viewer.setStyleSheet("background-color: #2b2b2b; border: 1px solid #444;")
@@ -155,7 +155,7 @@ class InvoiceWindow(QMainWindow):
         scroll_area.setWidget(self.lbl_doc_viewer)
         detail_layout.addWidget(scroll_area, 2) # Ratio 2
 
-        # Right: Data Fields
+        # Direita: Campos de Dados
         data_frame = QFrame()
         data_frame.setStyleSheet("background-color: #2b2b2b; border: 1px solid #444; padding: 10px;")
         self.data_layout = QVBoxLayout(data_frame)
@@ -174,15 +174,15 @@ class InvoiceWindow(QMainWindow):
             self.data_labels[field] = lbl_value
             
         self.data_layout.addStretch()
-        detail_layout.addWidget(data_frame, 1) # Ratio 1
+        detail_layout.addWidget(data_frame, 1) # Proporção 1
 
         splitter.addWidget(detail_widget)
-        splitter.setSizes([400, 400]) # Initial split
+        splitter.setSizes([400, 400]) # Divisão inicial
 
         main_layout.addWidget(splitter)
 
     def load_data(self):
-        init_db() # Ensure DB exists
+        init_db() # Garantir que o DB existe
         self.df_invoices = get_all_invoices()
         
         self.table.setRowCount(0)
@@ -191,7 +191,7 @@ class InvoiceWindow(QMainWindow):
         total_val = 0.0
         
         for idx, row in self.df_invoices.iterrows():
-            # Calculate Status
+            # Calcular Status
             val = row['valor_total']
             formatted_val = f"R$ {val:,.2f}" if val is not None else "R$ 0,00"
             if val is not None:
@@ -228,15 +228,15 @@ class InvoiceWindow(QMainWindow):
             return
             
         row_idx = selected_items[0].row()
-        # Get actual invoice data from DF using the index (assuming DF order matches table, which it should if reloaded)
-        # Safer to use ID if filtering was involved, but for MVP direct index mapping is fine if no sort applied.
-        # But wait, create a map or just grab from DF iloc[row_idx]
+        # Obter dados reais da fatura do DF usando o índice (assumindo que a ordem do DF corresponde à tabela, o que deve acontecer se recarregado)
+        # Mais seguro usar ID se houver filtragem, mas para o MVP o mapeamento direto de índice serve se nenhuma classificação for aplicada.
+        # Mas espere, crie um mapa ou apenas pegue do DF iloc[row_idx]
         if row_idx < len(self.df_invoices):
             row_data = self.df_invoices.iloc[row_idx]
             self.update_detail_view(row_data)
 
     def update_detail_view(self, row_data):
-        # Update Labels
+        # Atualizar Labels
         self.data_labels["CNPJ Emitente"].setText(str(row_data['cnpj_emitente']))
         self.data_labels["Nome Emitente"].setText(str(row_data['nome_emitente']))
         self.data_labels["Número Nota"].setText(str(row_data['numero_nota']))
@@ -245,7 +245,7 @@ class InvoiceWindow(QMainWindow):
         self.data_labels["Valor Total"].setText(f"R$ {val:,.2f}" if val else "R$ 0,00")
         self.data_labels["Resumo Serviço"].setText(str(row_data['resumo_servico']))
         
-        # Display File
+        # Exibir Arquivo
         f_path = row_data['file_path']
         if f_path and os.path.exists(f_path):
             self.display_file(f_path)
@@ -254,21 +254,21 @@ class InvoiceWindow(QMainWindow):
 
     def display_file(self, path):
         try:
-            # Check if PDF
+            # Verificar se é PDF
             if path.lower().endswith('.pdf'):
                 doc = fitz.open(path)
-                page = doc.load_page(0)  # load first page
-                pix = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5)) # zoom for better quality
+                page = doc.load_page(0)  # carregar primeira página
+                pix = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5)) # zoom para melhor qualidade
                 
-                # Convert fitz Pixmap to QImage
-                # pix.samples is bytes
+                # Converter Pixmap do fitz para QImage
+                # pix.samples são bytes
                 # QImage(bytes, width, height, bytesPerLine, format)
                 fmt = QImage.Format.Format_RGB888 if pix.alpha == 0 else QImage.Format.Format_RGBA8888
                 qt_img = QImage(pix.samples, pix.width, pix.height, pix.stride, fmt)
                 
                 self.lbl_doc_viewer.setPixmap(QPixmap.fromImage(qt_img))
             else:
-                # Image file
+                # Arquivo de imagem
                 self.lbl_doc_viewer.setPixmap(QPixmap(path).scaled(800, 1000, Qt.AspectRatioMode.KeepAspectRatio))
         except Exception as e:
             self.lbl_doc_viewer.setText(f"Erro ao abrir arquivo: {e}")
@@ -292,15 +292,15 @@ class InvoiceWindow(QMainWindow):
         QMessageBox.information(self, "Sucesso", "Processamento de notas finalizado!")
 
 def main():
-    # Setup App
+    # Configurar App
     app = QApplication(sys.argv)
     
-    # Apply Dark Theme
+    # Aplicar Tema Escuro
     try:
         if hasattr(qdarktheme, 'setup_theme'):
-            qdarktheme.setup_theme()
+             qdarktheme.setup_theme()
         else:
-            # Fallback for older versions
+            # Fallback para versões mais antigas
             app.setStyleSheet(qdarktheme.load_stylesheet())
     except Exception as e:
         print(f"Warning: Could not apply dark theme: {e}")
